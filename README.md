@@ -1,5 +1,7 @@
 Deployed on : https://online-data-tracker.onrender.com/dashboard.html
 
+![Alt text](/output.png)
+
 .
 🚀Online Data Tracker & Forecast Engine
 Hello! I'm Sivaranjini, and this is my brainchild: a full-stack intelligence portal that doesn't just track data—it predicts the future data. 🌟
