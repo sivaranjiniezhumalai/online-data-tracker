@@ -9,13 +9,9 @@ Most dashboards only let you look at data. I built this with a "Write-Back" engi
 
 🛠️ The Power Stack
 The Brain: Python (FastAPI) & ARIMA models for 7-day time-series forecasting.
-
 The Heart: Spring Boot (Java 21) managing business logic and API orchestration.
-
 The Memory: Neon PostgreSQL (Serverless) for reliable, cloud-native data persistence.
-
 The Suit: A modern, responsive dashboard built with HTML5, Inter UI, and Chart.js.
-
 The Home: Fully containerized with Docker and deployed on Render.
 
 🧠 Smart Features
