@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Intelligence Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 40px 20px;
+        }
+
+        header {
+            margin-bottom: 32px;
+            text-align: left;
+            width: 100%;
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; font-weight: 700; color: #0f172a; }
+        header p { margin: 8px 0 0; color: var(--text-muted); }
+
+        /* Modern Tab Styling */
+        nav { 
+            display: flex;
+            gap: 8px;
+            background: #e2e8f0;
+            padding: 6px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            width: fit-content;
+        }
+
+        nav button { 
+            padding: 10px 24px; 
+            cursor: pointer; 
+            border: none; 
+            background: transparent; 
+            border-radius: 8px; 
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        nav button.active { 
+            background: var(--card-bg); 
+            color: var(--primary); 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        section { 
+            background: var(--card-bg); 
+            padding: 32px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            display: none; 
+            border: 1px solid var(--border);
+        }
+
+        section.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* UI Components */
+        .controls { display: flex; gap: 12px; margin-bottom: 24px; }
+        
+        input { 
+            padding: 12px 16px; 
+            border: 1px solid var(--border); 
+            border-radius: 10px; 
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        input:focus { border-color: var(--primary); ring: 2px solid var(--primary); }
+
+        button.btn-primary { 
+            padding: 12px 24px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        button.btn-primary:hover { background: var(--primary-hover); }
+
+        .chart-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .chart-container { height: 350px; position: relative; }
+
+        /* Table Styling */
+        .category-block { margin-bottom: 40px; }
+        .category-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 0;
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: 16px;
+        }
+        .category-header h4 { margin: 0; font-size: 1.1rem; color: var(--primary); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; background: white; }
+        .btn-delete { color: var(--danger); border-color: #fca5a5; }
+        .btn-delete:hover { background: #fee2e2; }
+        
+        /* Spinner Animation */
+		.loader {
+		    border: 3px solid #f3f3f3;
+		    border-radius: 50%;
+		    border-top: 3px solid var(--primary);
+		    width: 20px;
+		    height: 20px;
+		    animation: spin 1s linear infinite;
+		    display: inline-block;
+		}
+		
+		@keyframes spin {
+		    0% { transform: rotate(0deg); }
+		    100% { transform: rotate(360deg); }
+		}
+		
+		.hidden { display: none !important; }
+
+		#loadingStatus {
+		    display: flex;
+		    align-items: center;
+		    gap: 10px;
+		    margin-top: 10px;
+		    font-size: 0.9rem;
+		    color: var(--primary);
+		    font-weight: 500;
+		}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Business Intelligence Portal</h1>
+        <p>Manage datasets and generate AI-powered time-series forecasts.</p>
+    </header>
+
+    <nav>
+        <button id="tab-analytics" class="active" onclick="showTab('analytics')">Analytics & Forecast</button>
+        <button id="tab-manage" onclick="showTab('manage')">Manage Data</button>
+    </nav>
+
+    <section id="analytics-section" class="active">
+	    <div id="loadingStatus" class="hidden">
+		    <div class="loader"></div>
+		    <span>AI is calculating forecast...</span>
+		</div>
+
+	    <div class="controls">
+	        <div style="flex-grow: 1;">
+	            <input id="forecastCategory" type="text" placeholder="Enter Category (e.g., Health)">
+	            <div id="categoryBadges" style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+	                </div>
+	        </div>
+	        <button class="btn-primary" onclick="loadForecast()" style="height: 45px;">Generate Analysis</button>
+	    </div>
+	    
+	    <div id="professionalError" style="display: none; padding: 15px; background: #fff1f2; border-left: 4px solid var(--danger); border-radius: 8px; margin-bottom: 20px;">
+	        <p style="margin: 0; color: #991b1b; font-size: 0.95rem;">
+	            <strong>Data Not Found:</strong> The requested category is currently unavailable in our records. 
+	            Please verify the spelling or check the suggested categories above.
+	        </p>
+	    </div>
+	    
+	    <div class="chart-card">
+	        <h3 style="margin-top:0; font-size: 1rem;">Historical Performance</h3>
+	        <div class="chart-container"><canvas id="historyChart"></canvas></div>
+	    </div>
+	
+	    <div class="chart-card" style="border-left: 4px solid var(--success);">
+	        <h3 style="margin-top:0; font-size: 1rem; color: var(--success);">AI Future Forecast (7-Day)</h3>
+	        <div class="chart-container"><canvas id="forecastChart"></canvas></div>
+	    </div>
+	</section>
+
+    <section id="manage-section">
+        <div style="margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+            <h3 style="margin-top:0">Add New Entry</h3>
+            <div class="controls">
+                <input id="newCategory" placeholder="Category Name">
+                <input id="newValue" type="number" placeholder="Value">
+                <input id="newDate" type="date">
+                <button class="btn-primary" onclick="saveData()">Save Record</button>
+            </div>
+        </div>
+
+        <div id="groupedDataContainer">
+            </div>
+    </section>
+</div>
+
+<script>
+    // Tab Switching Logic
+    function showTab(tab) {
+        document.querySelectorAll('section, nav button').forEach(el => el.classList.remove('active'));
+        document.getElementById(tab + '-section').classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+        if(tab === 'manage') refreshTable();
+    }
+
+    // --- CRUD FUNCTIONS ---
+    async function refreshTable() {
+        const response = await fetch('/data/all');
+        const data = await response.json();
+        const container = document.getElementById('groupedDataContainer');
+        container.innerHTML = '';
+
+        const groups = data.reduce((acc, item) => {
+            acc[item.category] = acc[item.category] || [];
+            acc[item.category].push(item);
+            return acc;
+        }, {});
+
+        for (const category in groups) {
+            const block = document.createElement('div');
+            block.className = 'category-block';
+            
+            block.innerHTML = `
+                <div class="category-header">
+                    <h4>${category}</h4>
+                    <span style="font-size:0.85rem; color:var(--text-muted)">${groups[category].length} records found</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Value</th>
+                            <th>Entry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${groups[category].map(item => `
+                            <tr>
+                                <td>#${item.id}</td>
+                                <td><input type="number" value="${item.value}" id="val-${item.id}" style="width:100px; padding:4px; border-radius:4px; border:1px solid #ddd;"></td>
+                                <td>${item.entryDate}</td>
+                                <td class="action-btns">
+                                    <button class="btn-sm" onclick="updateData(${item.id})">Update</button>
+                                    <button class="btn-sm btn-delete" onclick="deleteData(${item.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.appendChild(block);
+        }
+    }
+
+    async function saveData() {
+        const payload = {
+            category: document.getElementById('newCategory').value,
+            value: document.getElementById('newValue').value,
+            entryDate: document.getElementById('newDate').value
+        };
+        await fetch('/data/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        refreshTable();
+    }
+
+    async function deleteData(id) {
+        if(confirm("Are you sure you want to delete this record?")) {
+            await fetch(`/data/delete/${id}`, { method: 'DELETE' });
+            refreshTable();
+        }
+    }
+
+    async function updateData(id) {
+        const payload = { value: document.getElementById(`val-${id}`).value };
+        await fetch(`/data/update/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        alert("Record updated successfully.");
+        refreshTable();
+    }
+
+    // --- ANALYTICS FUNCTIONS ---
+    let historyChartInstance = null;
+    let forecastChartInstance = null;
+
+ // Run this when the page loads to show existing categories
+    window.onload = async () => {
+        fetchAvailableCategories();
+    };
+
+    async function fetchAvailableCategories() {
+        const response = await fetch('/data/categories');
+        const categories = await response.json();
+        const badgeContainer = document.getElementById('categoryBadges');
+        
+        badgeContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 5px;">Suggestions:</span>';
+        
+        categories.forEach(cat => {
+            const badge = document.createElement('span');
+            badge.innerText = cat;
+            badge.style = "cursor:pointer; padding: 4px 10px; background: #e2e8f0; border-radius: 20px; font-size: 0.8rem; font-weight: 500; color: var(--primary);";
+            badge.onclick = () => {
+                document.getElementById('forecastCategory').value = cat;
+                loadForecast();
+            };
+            badgeContainer.appendChild(badge);
+            
+        });
+    }
+
+    // Update your loadForecast function error block
+    async function loadForecast() {
+	    const category = document.getElementById("forecastCategory").value.trim();
+	    const errorBox = document.getElementById("professionalError");
+	    const loadingStatus = document.getElementById("loadingStatus"); // New element
+	    
+	    if(!category) return alert("Please enter a category first");
+	
+	    // Show loader and hide previous errors
+	    errorBox.style.display = "none";
+	    loadingStatus.classList.remove('hidden');
+	
+	    try {
+	        const response = await fetch(`/data/forecast?category=${encodeURIComponent(category)}`);
+	        
+	        if (!response.ok) {
+	            errorBox.style.display = "block";
+	            if (historyChartInstance) historyChartInstance.destroy();
+	            if (forecastChartInstance) forecastChartInstance.destroy();
+	            return;
+	        }
+	
+	        const result = await response.json();
+	
+	        renderChart('historyChart', 
+	            result.history.map(i => i.entryDate), 
+	            result.history.map(i => i.value), 
+	            `History: ${category}`, '#64748b', 'historyChartInstance', (inst) => historyChartInstance = inst);
+	
+	        renderChart('forecastChart', 
+	            result.forecast.map(i => i.date), 
+	            result.forecast.map(i => i.value), 
+	            `Forecast: ${category}`, '#2563eb', 'forecastChartInstance', (inst) => forecastChartInstance = inst);
+	
+	    } catch (err) {
+	        console.error(err);
+	        errorBox.style.display = "block";
+	    } finally {
+	        // Hide loader after process is complete
+	        loadingStatus.classList.add('hidden');
+	    }
+	}
+
+    function renderChart(canvasId, labels, data, label, color, instanceVarName, setInstance) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        if (window[instanceVarName]) window[instanceVarName].destroy();
+        
+        window[instanceVarName] = new Chart(ctx, {
+            type: 'line',
+            data: { 
+                labels, 
+                datasets: [{ 
+                    label, 
+                    data, 
+                    borderColor: color, 
+                    backgroundColor: color + '15',
+                    fill: true, 
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: color
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { border: { dash: [4, 4] } }
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
